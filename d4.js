@@ -19,16 +19,16 @@ const drawn = []
 const winners = [];
 for (const n of numbers) {
   drawn.push(n);
-  const [[winner], newBoards] = _.partition(boards, (({rows, cols}) => {
+  const [[winner], loosers] = _.partition(boards, (({rows, cols}) => {
     const bingo = (nums) => _.difference(nums, drawn).length === 0;
     return cols.some(bingo) || rows.some(bingo);
   }));
-  boards = newBoards;
   if (winner) {
     const unmarked = _.difference(_.flatten(winner.rows), drawn);
     const score =_(unmarked).map(_.toNumber).sum() * n;
     winners.push(score);
   }
+  boards = loosers;
 }
 
 console.log("Part 1", winners[0]);
