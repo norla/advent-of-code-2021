@@ -14,8 +14,8 @@ function run(input, withDiagonals) {
       let [x, y] = [x1, y1];
       visit(grid, x, y);
       while (x !== x2 || y !== y2) {
-        x = x + Math.sign(x2 - x1);
-        y = y + Math.sign(y2 - y1);
+        x += Math.sign(x2 - x1);
+        y += Math.sign(y2 - y1);
         visit(grid, x, y);
       }
     });
