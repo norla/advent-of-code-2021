@@ -5,31 +5,31 @@ const _ = require("lodash");
 const lines = fs.readFileSync("./d4.txt", "utf-8").split("\n");
 const numbers = lines[0].split(",");
 
-let { boards } = lines.slice(1).reduce(({boards = [], current = []}, line) => {
+let { boards } = lines.slice(1).reduce(({boards = [], currentBoard = []}, line) => {
   if (line === "") {
-    boards.push({rows: current, cols: [...Array(5).keys()].map(n => current.map(l => l[n]))});
-    current = [];
+    boards.push({rows: currentBoard, cols: _.range(0,5).map(n => currentBoard.map(l => l[n]))});
+    currentBoard = [];
   } else {
-    current.push(line.trim().split(/[ ]+/));
+    currentBoard.push(line.trim().split(/[ ]+/));
   }
-  return {boards, current};
+  return {boards, currentBoard};
 });
 
 const drawn = []
-const winners = [];
+const finished = [];
 for (const n of numbers) {
   drawn.push(n);
-  const [[winner], loosers] = _.partition(boards, (({rows, cols}) => {
+  const [winners, loosers] = _.partition(boards, (({rows, cols}) => {
     const bingo = (nums) => _.difference(nums, drawn).length === 0;
     return cols.some(bingo) || rows.some(bingo);
   }));
-  if (winner) {
+  for (const winner of winners) {
     const unmarked = _.difference(_.flatten(winner.rows), drawn);
     const score =_(unmarked).map(_.toNumber).sum() * n;
-    winners.push(score);
+    finished.push(score);
   }
   boards = loosers;
 }
 
-console.log("Part 1", winners[0]);
-console.log("Part 2", winners[winners.length - 1])
+console.log("Part 1", finished[0]);
+console.log("Part 2", finished[finished.length - 1])
