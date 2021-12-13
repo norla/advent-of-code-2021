@@ -3,17 +3,16 @@ const fs = require("fs");
 const _ = require("lodash");
 
 function fold(sheet, [axis, pos]) {
-  const newSheet = [];
-  sheet.forEach(([x, y]) => {
+  return sheet.reduce((acc, [x, y]) => {
     if (axis === "y") {
-      if (y < pos) newSheet.push([x, y]);
-      if (y > pos) newSheet.push([x, 2 * pos - y]);
+      if (y < pos) acc.push([x, y]);
+      if (y > pos) acc.push([x, 2 * pos - y]);
     } else {
-      if (x < pos) newSheet.push([x, y]);
-      if (x > pos) newSheet.push([2 * pos - x, y]);
+      if (x < pos) acc.push([x, y]);
+      if (x > pos) acc.push([2 * pos - x, y]);
     }
-  });
-  return newSheet;
+    return acc
+  }, []);
 }
 
 const input = fs.readFileSync("./d13.txt", "utf-8").trim().split("\n");
