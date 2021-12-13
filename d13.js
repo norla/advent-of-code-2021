@@ -22,7 +22,7 @@ const folds = input
   .map((l) => l.split(" ").reverse()[0].split("="))
   .map(([axis, n]) => [axis, Number(n)]);
 
-console.log("Part 1:", _.uniqBy([folds[0]].reduce(fold, sheet), String).length);
+console.log("Part 1:", _.uniqBy(fold(sheet, folds[0]), String).length);
 console.log("Part 2");
 const solution2 =  folds.reduce(fold, sheet);
 for (const y of _.range(0, 6)) {
