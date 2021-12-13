@@ -1,13 +1,24 @@
 "use strict";
 const fs = require("fs");
 
-let fish = fs.readFileSync("./d6.txt", "utf-8") .trim().split(/,/).map(n => Number(n));
-
-for (const i in [...Array(80)]) {
-  // console.log(i, fish.join(","))
-  const births = fish.filter(n => n === 0);
-  fish = fish.map(f => f === 0 ? 6 : f -1);
-  fish = fish.concat(births.fill(8));
+function run(fish, steps) {
+  for (const i in [...Array(steps)]) {
+    const nBirths = fish["0"] || 0;
+    fish = Object.entries(fish).reduce((acc, [k, v]) => {
+      const newKey = k === "0" ? 6 : Number(k) - 1;
+      const newValue = k === "7" ? v + nBirths : v;
+      return { ...acc, [newKey]: newValue };
+    }, {});
+    fish[8] = (fish[8] || 0) + nBirths;
+  }
+  return Object.values(fish).reduce((sum, n) => sum + n, 0);
 }
-console.log("Part 1", fish.length)
-// console.log("- - - DEBUG input", JSON.stringify(input, null, 2));
+
+const input = fs
+  .readFileSync("./d6.txt", "utf-8")
+  .trim()
+  .split(/,/)
+  .reduce((acc, n) => ({ ...acc, [n]: (acc[n] || 0) + 1 }), {});
+
+console.log("Part 1", run(input, 80));
+console.log("Part 2", run(input, 256));
