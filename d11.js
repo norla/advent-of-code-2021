@@ -3,11 +3,10 @@
 const fs = require("fs");
 const input = fs.readFileSync("./d11.txt", "utf-8").trim().split(/\n/).map(r => r.split("").map(Number));
 const surroundings = [[1,0], [1,1], [0,1], [-1,1], [-1,0], [-1,-1],[0,-1],[1,-1]];
+
 function turn(grid) {
   let flashes = 0;
-  mapGrid(grid, (x, y, n) => {
-    return n + 1
-  });
+  mapGrid(grid, (x, y, n) => n + 1);
   let flashMade = true;
   while(flashMade) {
     flashMade = false;
@@ -17,6 +16,7 @@ function turn(grid) {
         flashes++;
         setValue(grid, x, y, 0);
         surroundings.forEach(([xD, yD]) => incValue(grid, x + xD, y + yD));
+        printGrid(grid);
         return 0;
       } else {
         return n;
@@ -27,14 +27,14 @@ function turn(grid) {
   return flashes;
 }
 
-const colors = [15, 52, 53, 56, 54, 91,88, 124, 160,196].map(c => `\x1b[38;5;${c}m`);
+const colors = [15, 235, 236, 238, 240, 242, 244, 248, 250, 252].map((c, i) => `\x1b[48;5;${c}m\x1b[38;5;${c === 15? 15 : c - 1}m`);
 let c = 0;
 function printGrid(grid) {
-  const gridStr = grid.map((l) => l.map(x => `${colors[x % 10]}${x % 10}`).join("")).join("\n") + `\n\nGen: ${c}\n`;
+  const gridStr = grid.map((l) => l.map(x => `${colors[x % 10]} ${x % 10}`).join("")).join("\n") + `\x1b[0m\n\nGen: ${c}\n`;
   setTimeout(() => {
     console.clear();
     console.log(gridStr)
-  }, c*1000);
+  }, c*10);
   c++;
 }
 
