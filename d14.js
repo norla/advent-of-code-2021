@@ -8,16 +8,19 @@ const templatePairs = template
   .split("")
   .map((c, i, arr) => `${arr[i - 1]}${c}`)
   .splice(1)
-  .reduce((acc, p) => ({...acc, [p]: (acc[p] || 0) + 1}), {});
-
+  .reduce((acc, p) => inc(acc, p, 1), {});
 const rules = input
   .splice(2)
   .map((l) => l.split(" -> "))
   .reduce((acc, [k, v]) => ({...acc, [k]: v}), {});
+const initialCount = [...template].reduce((acc, c) => inc(acc, c), {});
+
+function inc(map, key, n = 1) {
+  map[key] = (map[key] || 0) + n;
+  return map;
+}
 
 function apply(rules, pairs, count) {
-  console.log("- - - pair", pairs, count);
-
   const newPairs = {...pairs};
   const newCount = {...count};
   Object.entries(pairs)
@@ -25,31 +28,21 @@ function apply(rules, pairs, count) {
     .forEach(([pair, n]) => {
       const newPair1 = `${pair.charAt(0)}${rules[pair]}`;
       const newPair2 = `${rules[pair]}${pair.charAt(1)}`;
-      // console.log("- - - new pair:", pair, rules[pair], newPair1, newPair2);
-
-      newPairs[pair] = newPairs[pair] - n;
-      newPairs[newPair1] = (newPairs[newPair1] || 0) + n;
-      newPairs[newPair2] = (newPairs[newPair2] || 0) + n;
-      newCount[rules[pair]] = (newCount[rules[pair]] || 0) + n;
+      inc(newPairs, pair, -n);
+      inc(newPairs, newPair1, n);
+      inc(newPairs, newPair2, n);
+      inc(newCount, rules[pair], n);
     });
   return {pairs: newPairs, count: newCount};
 }
 
-function countChars(pairs) {
-  return Object.entries(pairs).reduce((acc, [pair, n], i) => {
-    acc[pair.charAt(1)] = (acc[pair.charAt(1)] || 0) + n;
-    return acc;
-  }, {});
-}
-
 const afterTen = Array(10)
   .fill()
-  .reduce((acc) => apply(rules, acc.pairs, acc.count), {pairs: templatePairs, count: countChars(templatePairs)});
-
-console.log("Part 1", afterTen); // 2957 - 789
+  .reduce((acc) => apply(rules, acc.pairs, acc.count), {pairs: templatePairs, count: initialCount});
+console.log("Part 1", afterTen); // 2957 - 789 =
 
 const afterForty = Array(40)
   .fill()
-  .reduce((acc) => apply(rules, acc.pairs, acc.count), {pairs: templatePairs, count: countChars(templatePairs)});
+  .reduce((acc) => apply(rules, acc.pairs, acc.count), {pairs: templatePairs, count: initialCount});
 const vals = Object.values(afterForty.count).sort((a, b) => a - b);
-console.log("Part 2", vals); // 2967977072188
+console.log("Part 2", vals); // 3770115246928 - 802138174740 = 2967977072188
