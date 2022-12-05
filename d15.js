@@ -13,61 +13,61 @@ const visits = {};
 let bestScore = 2000;
 let bestPath = [];
 let i = 0;
-function solve(cave, path, totScore) {
-  const [x, y] = path[path.length - 1];
-  const score = grid.get(cave, x, y);
-  const newTotScore = Number(score) + totScore;
-  if (i++ % 200000 === 0) {
-    console.clear();
-    for (let i = 0; i < caveHeight; i++) {
-      for (let j = 0; j < caveWidth; j++) {
-        let char = " ";
-        if (bestPath.find(([x2, y2]) => x2 === j && y2 === i)) {
-          char = "O";
-        } else if (path.find(([x2, y2]) => x2 === j && y2 === i)) {
-          char = "*";
-        } else if (grid.get(visits, j, i)) {
-          char = ".";
-        }
-        process.stdout.write(char);
-      }
-      console.log();
-    }
-    console.log(bestScore, i);
-  }
+function solve(cave, x, y, path, totScore) {
+  const newPath = path.concat([[x, y]]);
+  const score = x === 0 && y === 0 ? 0 : Number(grid.get(cave, x, y));
+  const newTotScore = score + totScore;
+  if (i++ % 300000 === 0) print(path);
 
-  const minStepsToGoal = caveWidth - x + caveHeight - y;
-  // 1000 40 1041
-  const minTotScore = bestScore;
-
-  if (
-    score == null ||
-    newTotScore > bestScore - minStepsToGoal ||
-    (grid.get(visits, x, y) && Number(grid.get(visits, x, y)) < newTotScore)
-  ) {
-    return;
-  }
-  grid.set(visits, x, y, newTotScore);
+  // We have reached the end, check highscore and abort
   if (x === caveWidth - 1 && y === caveHeight - 1) {
-    // console.log("- - - GOAL", newTotScore, bestScore, path.length);
     if (newTotScore <= bestScore) {
-      // console.log("- - - DEBUG path", path.map(([x, y]) => `[${x},${y}]`).join(","));
-
+      print(newPath);
       bestScore = newTotScore;
-      bestPath = path;
+      bestPath = newPath;
     }
     return;
   }
+  // No chance of reaching end, abort
+  const minStepsToGoal = caveWidth - x + caveHeight - y - 2;
+  if (newTotScore + minStepsToGoal >= bestScore) {
+    return;
+  }
 
-  // console.log("- - - DEBUG", x, y, path.length, totScore, bestScore, minStepsToGoal);
-  const visited = (x2, y2) => path.find(([x3, y3]) => x3 === x2 && y3 === y2);
-  !visited(x, y - 1) && solve(cave, path.concat([[x, y - 1]]), newTotScore);
-  !visited(x + 1, y) && solve(cave, path.concat([[x + 1, y]]), newTotScore);
-  !visited(x, y + 1) && solve(cave, path.concat([[x, y + 1]]), newTotScore);
-  !visited(x - 1, y) && solve(cave, path.concat([[x - 1, y]]), newTotScore);
+  // Another solution has reached this point quicker than us, abort
+  if (Number(grid.get(visits, x, y)) < newTotScore) {
+    return;
+  }
+  // Record how fast we reached this point
+  grid.set(visits, x, y, newTotScore);
+
+  const eligible = (x2, y2) => !path.find(([x3, y3]) => x3 === x2 && y3 === y2) && grid.get(cave, x2, y2);
+  eligible(x, y - 1) && solve(cave, x, y - 1, newPath, newTotScore);
+  eligible(x + 1, y) && solve(cave, x + 1, y, newPath, newTotScore);
+  eligible(x, y + 1) && solve(cave, x, y + 1, newPath, newTotScore);
+  eligible(x - 1, y) && solve(cave, x - 1, y, newPath, newTotScore);
 }
 
 // console.log("- - - DEBUG", caveHeight, caveWidth);
-solve(cave, [[0, 0]], 0);
+solve(cave, 0, 0, [], 0);
 
-console.log("- - - DEBUG SOLS", bestScore - Number(grid.get(cave, 0, 0)));
+console.log("Part 1", bestScore);
+
+function print(path) {
+  console.clear();
+  for (let i = 0; i < caveHeight; i++) {
+    for (let j = 0; j < caveWidth; j++) {
+      let char = " ";
+      if (bestPath.find(([x2, y2]) => x2 === j && y2 === i)) {
+        char = `${grid.get(cave, j, i)}`; //"O";
+      } else if (path.find(([x2, y2]) => x2 === j && y2 === i)) {
+        char = "*"; //
+      } else if (grid.get(visits, j, i)) {
+        char = ".";
+      }
+      process.stdout.write(char);
+    }
+    console.log();
+  }
+  console.log(bestScore, i);
+}
