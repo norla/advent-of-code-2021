@@ -4,70 +4,37 @@ const fs = require("fs");
 const grid = require("./lib/grid");
 const input = fs.readFileSync("./d15.txt", "utf-8").trim().split(/\n/);
 const cave = {};
-input.forEach((l, y) => [...l].forEach((c, x) => grid.set(cave, x, y, c)));
+const distances = {};
+input.forEach((l, y) =>
+  [...l].forEach((c, x) => {
+    grid.set(cave, x, y, c);
+    grid.set(distances, x, y, Number.MAX_SAFE_INTEGER);
+  }),
+);
+grid.set(distances, 0, 0, 0);
 
 const caveHeight = Object.keys(cave).length;
 const caveWidth = Object.keys(cave[0]).length;
-const visits = {};
+const shortest = {};
 
-let bestScore = 2000;
-let bestPath = [];
-let i = 0;
-function solve(cave, x, y, path, totScore) {
-  const newPath = path.concat([[x, y]]);
-  const score = x === 0 && y === 0 ? 0 : Number(grid.get(cave, x, y));
-  const newTotScore = score + totScore;
-  if (i++ % 300000 === 0) print(path);
-
-  // We have reached the end, check highscore and abort
-  if (x === caveWidth - 1 && y === caveHeight - 1) {
-    if (newTotScore <= bestScore) {
-      print(newPath);
-      bestScore = newTotScore;
-      bestPath = newPath;
-    }
-    return;
-  }
-  // No chance of reaching end, abort
-  const minStepsToGoal = caveWidth - x + caveHeight - y - 2;
-  if (newTotScore + minStepsToGoal >= bestScore) {
-    return;
-  }
-
-  // Another solution has reached this point quicker than us, abort
-  if (Number(grid.get(visits, x, y)) < newTotScore) {
-    return;
-  }
-  // Record how fast we reached this point
-  grid.set(visits, x, y, newTotScore);
-
-  const eligible = (x2, y2) => !path.find(([x3, y3]) => x3 === x2 && y3 === y2) && grid.get(cave, x2, y2);
-  eligible(x, y - 1) && solve(cave, x, y - 1, newPath, newTotScore);
-  eligible(x + 1, y) && solve(cave, x + 1, y, newPath, newTotScore);
-  eligible(x, y + 1) && solve(cave, x, y + 1, newPath, newTotScore);
-  eligible(x - 1, y) && solve(cave, x - 1, y, newPath, newTotScore);
+while (grid.entries(shortest).length < caveHeight * caveWidth) {
+  const {x, y, value} = grid
+    .entries(distances)
+    .filter(({x, y}) => !grid.includes(shortest, x, y))
+    .sort(({value: v1}, {value: v2}) => v1 - v2)[0];
+  grid.set(shortest, x, y, value);
+  const adjacent = [
+    [Number(x) - 1, y],
+    [Number(x) + 1, y],
+    [x, Number(y) - 1],
+    [x, Number(y) + 1],
+  ].filter(([x, y]) => x >= 0 && y >= 0 && x < caveWidth && y < caveHeight);
+  adjacent.forEach(([x, y]) => {
+    const oldDistance = Number(grid.get(distances, x, y));
+    const newDistance = Number(grid.get(cave, x, y)) + Number(value);
+    grid.set(distances, x, y, Math.min(oldDistance, newDistance));
+  });
 }
 
-// console.log("- - - DEBUG", caveHeight, caveWidth);
-solve(cave, 0, 0, [], 0);
-
-console.log("Part 1", bestScore);
-
-function print(path) {
-  console.clear();
-  for (let i = 0; i < caveHeight; i++) {
-    for (let j = 0; j < caveWidth; j++) {
-      let char = " ";
-      if (bestPath.find(([x2, y2]) => x2 === j && y2 === i)) {
-        char = `${grid.get(cave, j, i)}`; //"O";
-      } else if (path.find(([x2, y2]) => x2 === j && y2 === i)) {
-        char = "*"; //
-      } else if (grid.get(visits, j, i)) {
-        char = ".";
-      }
-      process.stdout.write(char);
-    }
-    console.log();
-  }
-  console.log(bestScore, i);
-}
+// console.log("Part 1", bestScore);
+console.log("Part 1", grid.get(shortest, caveWidth - 1, caveHeight - 1));
