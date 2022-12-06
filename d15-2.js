@@ -4,19 +4,7 @@ const fs = require("fs");
 const grid = require("./lib/grid");
 const input = fs.readFileSync("./d15.txt", "utf-8").trim().split(/\n/);
 const cave = {};
-input.forEach((l, y) =>
-  [...l].forEach((c, x) => {
-    for (let y2 = 0; y2 < 5; y2++)
-      for (let x2 = 0; x2 < 5; x2++) {
-        const newX = x + x2 * input[0].length;
-        const newY = y + y2 * input.length;
-        const extraRisk = y2 + x2;
-        const newRisk = ((c + extraRisk - 1) % 9) + 1;
-        // console.log("- - - DEBUG", c, extraRisk, newRisk, x, x2, newX);
-        grid.set(cave, newX, newY, newRisk);
-      }
-  }),
-);
+input.forEach((l, y) => [...l].forEach((c, x) => {}));
 // 0 1 2 3 5
 // 1 2 3 4 5
 // 2 3 4 5 6
