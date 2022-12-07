@@ -27,20 +27,25 @@ function solve(cave) {
   const shortest = {};
   grid.entries(cave).forEach(({x, y, value}) => grid.set(distances, x, y, Number.MAX_SAFE_INTEGER));
   grid.set(distances, 0, 0, 0);
-  while (grid.entries(shortest).length < caveHeight * caveWidth) {
+  while (grid.size(shortest) < caveHeight * caveWidth) {
     const {x, y, value} = grid
       .entries(distances)
       .filter(({x, y}) => !grid.includes(shortest, x, y))
-      .sort(({value: v1}, {value: v2}) => v1 - v2)[0];
+      .reduce((acc, dist) => {
+        if (!acc) return dist;
+        return dist.value < acc.value ? dist : acc;
+      });
+    // console.log(grid.size(shortest), caveHeight * caveWidth, value, grid.size(distances));
     grid.set(shortest, x, y, value);
+    grid.del(distances, x, y);
     const adjacent = [
       [Number(x) - 1, y],
       [Number(x) + 1, y],
       [x, Number(y) - 1],
       [x, Number(y) + 1],
-    ].filter(([x, y]) => x >= 0 && y >= 0 && x < caveWidth && y < caveHeight);
+    ].filter(([x, y]) => x >= 0 && y >= 0 && x < caveWidth && y < caveHeight && !grid.includes(shortest, x, y));
     adjacent.forEach(([x, y]) => {
-      const oldDistance = Number(grid.get(distances, x, y));
+      const oldDistance = Number(grid.get(distances, x, y) || Number.MAX_SAFE_INTEGER);
       const newDistance = Number(grid.get(cave, x, y)) + Number(value);
       grid.set(distances, x, y, Math.min(oldDistance, newDistance));
     });
